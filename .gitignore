@@ -1,2 +1,8 @@
 .env
 credentials.json
+pdfs/*
+!pdfs/.gitkeep
+.DS_Store
+venv/
+.vscode/
+*.log
