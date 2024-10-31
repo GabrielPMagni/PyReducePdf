@@ -67,8 +67,6 @@ def compress_pdf(pdf_stream: BytesIO) -> PdfReader:
 
     for page in pdf_document.pages:
         page.compress_content_streams(level=9)
-        for img in page.images:
-            img.replace(img.image, quality=80)
 
     pdf_document.compress_identical_objects(remove_identicals=True, remove_orphans=True)
     pdf_document.metadata = None
@@ -76,6 +74,8 @@ def compress_pdf(pdf_stream: BytesIO) -> PdfReader:
     tmp_stream = BytesIO()
     pdf_document.write(tmp_stream)
     reader = PdfReader(tmp_stream)
+    
+    pdf_document.close()
     
     log("PDF comprimido com sucesso.")
     return reader
@@ -157,7 +157,7 @@ def save_failed_job(file_name: str, error: str):
             failed_jobs = json.load(file)
     payload = { "file_name": file_name, "error": error }
     failed_jobs.append(payload)
-    with open(failed_jobs_file, "a", encoding='utf-8') as file:
+    with open(failed_jobs_file, "w", encoding='utf-8') as file:
         json.dump(failed_jobs, file, indent=4, ensure_ascii=False)
 
 
@@ -182,12 +182,15 @@ def clear_logs():
     """Limpa os arquivos de log."""
     with open(execution_log_file, "w") as file:
         file.write("")
+        file.close()
 
     with open(failed_jobs_file, "w") as file:
         file.write("")
+        file.close()
 
     with open(successful_jobs_file, "w") as file:
         file.write("")
+        file.close()
 
 
 def setup_logger():
@@ -223,7 +226,7 @@ if __name__ == "__main__":
     try:
         clear_logs()
         process_all_pdfs(args.bucket_name)
-        handle_failed_jobs()
+        # handle_failed_jobs()
     except KeyboardInterrupt:
         log("Processamento interrompido pelo usuário.")
     except Exception as e:
